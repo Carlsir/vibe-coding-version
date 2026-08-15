@@ -1,2 +1,119 @@
-# vibe-coding-version
-Vibe Coding - AI version management system for coders without Git
+# 🎛️ Vibe Coding — AI 编码个人版本管理体系
+
+> 专为不用 Git 的个人 AI 编码者设计的轻量版本管理方案。
+> 
+> 核心理念：**AI 的工作单位是"一次会话"，不是"一次文件修改"**。
+
+---
+
+## 这个仓库有什么
+
+| 文件/目录 | 说明 |
+|-----------|------|
+| `index.html` | 本地版本管理工作台——在浏览器里管理版本、口径、决策 |
+| `skills/` | 两个可直接安装到 TraeWork 的 Skill |
+| `docs/` | 方法论和治理文档 |
+| `README.md` | 本文件 |
+| `GOVERNANCE.md` | 项目治理规则 |
+
+---
+
+## 安装
+
+### 方式一：本地工作台（小白首选）
+
+直接用浏览器打开 `index.html`：
+
+```
+start index.html
+```
+
+数据存在浏览器 localStorage，无需后端。
+
+### 方式二：安装 Skill（嵌入 Agent）
+
+将 `skills/` 目录复制到你的 Skills 目录：
+
+```powershell
+# 复制到全局 Skills（所有项目可用）
+Copy-Item -Recurse "skills\ai-coding-init" "$env:USERPROFILE\.trae-cn\skills\"
+Copy-Item -Recurse "skills\ai-coding-version" "$env:USERPROFILE\.trae-cn\skills\"
+
+# 或复制到项目本地（仅当前项目）
+Copy-Item -Recurse "skills\ai-coding-init" ".trae\skills\"
+```
+
+安装后在对话中触发：
+
+- **"初始化版本管理"** → 执行初始化流程
+- **"保存版本" / "改好了"** → 执行快照流程
+- **"继续项目" / "上次做到哪了"** → 恢复上下文
+- **"回退" / "回到能跑的那个"** → 版本回退
+- **"查看历史" / "清理旧版本"** → 历史审计
+
+---
+
+## 设计原则
+
+### 1. Git 让渡
+
+检测到 Git → **本 Skill 整体退出**，不干预。我们只服务不用 Git 的人。
+
+### 2. 会话级变更集
+
+AI 一次会话改 5 个文件 → 归为一个变更集，共享一个版本号、一条日志。
+
+### 3. 口径优先
+
+CHANGELOG 记"做了什么"，PROJECT_STATE 记"现在是什么情况"。
+
+### 4. 小白友好
+
+- 默认保守策略：不确定变更类型 → 归为"小修"
+- 永远保留标记为"可运行"的版本
+- 智能清理：只清理"小修"和超出 5 个的旧版本
+
+### 5. 被动决策记录
+
+对话中做出重大决定 → 自动记录，不需要用户主动说"记一下"。
+
+---
+
+## 版本命名规范
+
+```
+{YYYYMMDD}_{type}_{核心描述}_v{N}.{ext}
+
+示例：
+20260812_code_用户登录模块_v3.py
+20260812_doc_需求分析_v2.md
+20260812_config_数据库_v1.json
+```
+
+---
+
+## 版本边界判断
+
+| 变更 | 是否升级版本号 |
+|------|--------------|
+| 功能新增 | ✅ 升级 |
+| 重构 | ✅ 升级 |
+| Bug 修复 | ✅ 升级 |
+| 配置变更 | ❌ 不升级，但记录 |
+| 小修 | ❌ 不升级，但记录 |
+
+---
+
+## 贡献
+
+欢迎提交 Issue 和 PR。核心原则：
+
+- 默认保守策略
+- 小白能用比高级功能更重要
+- Git 让渡不可妥协
+
+---
+
+## 许可
+
+MIT License

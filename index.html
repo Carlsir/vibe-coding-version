@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Vibe Coding 工作台</title>
+<style>
+:root{--bg:#f5f6fa;--surface:#fff;--surface-2:#fafbfc;--ink:#1a1a2e;--ink-2:#2d3748;--muted:#718096;--rule:#e2e8f0;--brand:#4f46e5;--brand-light:#eef2ff;--green:#059669;--green-light:#ecfdf5;--amber:#d97706;--red:#dc2626;--red-light:#fef2f2;--blue:#2563eb;--blue-light:#eff6ff;--radius:12px;--radius-sm:8px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans CJK SC",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--rule);padding:24px 0}
+.sidebar-brand{padding:0 24px 20px;border-bottom:1px solid var(--rule);margin-bottom:16px}
+.sidebar-brand h1{font-size:1.1rem;font-weight:800;color:var(--brand)}
+.sidebar-brand p{font-size:.75rem;color:var(--muted);margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 24px;font-size:.9rem;font-weight:500;color:var(--ink-2);cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface-2);color:var(--brand)}
+.nav-item.active{background:var(--brand-light);color:var(--brand);border-left-color:var(--brand)}
+.nav-icon{font-size:1.1rem;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--brand);color:#fff;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:16px 24px;border-top:1px solid var(--rule);font-size:.72rem;color:var(--muted)}
+.main{padding:32px 40px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.page-header h2{font-size:1.4rem;font-weight:800}
+.page-header .subtitle{font-size:.85rem;color:var(--muted);margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;font-size:.88rem;font-weight:600;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:#4338ca}
+.btn-secondary{background:var(--surface);color:var(--ink-2);border:1px solid var(--rule)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:5px 12px;font-size:.8rem}
+.btn-icon{padding:7px;border-radius:6px;background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:1rem}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:20px 24px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-header h3{font-size:1rem;font-weight:700}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:20px 22px}
+.stat-num{font-size:2rem;font-weight:800}
+.stat-label{font-size:.8rem;color:var(--muted);margin-top:2px}
+.stat-icon{font-size:1.3rem;margin-bottom:6px}
+.table-wrap{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead{background:var(--surface-2)}
+thead th{padding:12px 16px;text-align:left;font-weight:600;font-size:.78rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--rule)}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--rule)}
+tbody tr:last-child td{border-bottom:none}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+.tag-green{background:var(--green-light);color:var(--green)}
+.tag-brand{background:var(--brand-light);color:var(--brand)}
+.tag-amber{background:#fffbeb;color:var(--amber)}
+.tag-red{background:var(--red-light);color:var(--red)}
+.tag-gray{background:#e2e8f0;color:#718096}
+.status-dot{display:inline-flex;align-items:center;gap:5px;font-size:.82rem;font-weight:600}
+.status-dot::before{content:"";width:7px;height:7px;border-radius:50%}
+.status-dot.runnable::before{background:var(--green)}
+.status-dot.unverified::before{background:var(--amber)}
+.status-dot.broken::before{background:var(--red)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--rule)}
+.modal-header h3{font-size:1.1rem;font-weight:700}
+.modal-body{padding:24px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--rule)}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--ink-2)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 14px;font-size:.9rem;border:1px solid var(--rule);border-radius:var(--radius-sm);font-family:var(--font);background:var(--surface);color:var(--ink)}
+.form-group textarea{resize:vertical;min-height:80px;font-family:"Cascadia Code",monospace;font-size:.82rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius-sm);font-size:.88rem;color:#fff}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+.markdown-preview{background:var(--surface-2);border-radius:var(--radius-sm);padding:16px 20px;font-size:.85rem;line-height:1.8;font-family:var(--font);white-space:pre-wrap;max-height:400px;overflow-y:auto;border:1px solid var(--rule)}
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.main{padding:20px 16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="sidebar-brand"><h1>🎛️ Vibe Coding</h1><p>版本管理工作台</p></div>
+<nav>
+<div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span> 仪表盘</div>
+<div class="nav-item" data-page="versions"><span class="nav-icon">📦</span> 版本管理 <span class="nav-badge" id="version-count">0</span></div>
+<div class="nav-item" data-page="timeline"><span class="nav-icon">📅</span> 时间线</div>
+<div class="nav-item" data-page="state"><span class="nav-icon">📝</span> 项目口径</div>
+<div class="nav-item" data-page="decisions"><span class="nav-icon">⚖️</span> 决策记录 <span class="nav-badge" id="decision-count">0</span></div>
+<div class="nav-item" data-page="config"><span class="nav-icon">⚙️</span> 配置</div>
+<div class="nav-item" data-page="export"><span class="nav-icon">📤</span> 导出报告</div>
+</nav>
+<div class="sidebar-footer">v1.0 · localStorage</div>
+</aside>
+<main class="main">
+<div class="page active" id="page-dashboard">
+<div class="page-header"><div><h2>仪表盘</h2><p class="subtitle">项目版本管理总览</p></div><button class="btn btn-primary" onclick="openModal('new-version')">+ 新建版本</button></div>
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-icon">📦</div><div class="stat-num" id="stat-total">0</div><div class="stat-label">总版本数</div></div>
+<div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" id="stat-runnable">0</div><div class="stat-label">可运行版本</div></div>
+<div class="stat-card"><div class="stat-icon">⚖️</div><div class="stat-num" id="stat-decisions">0</div><div class="stat-label">关键决策</div></div>
+<div class="stat-card"><div class="stat-icon">📅</div><div class="stat-num" id="stat-days">0</div><div class="stat-label">管理天数</div></div>
+</div>
+<div class="card" style="margin-bottom:20px"><div class="card-header"><h3>📝 当前项目口径</h3><button class="btn btn-secondary btn-sm" onclick="openModal('edit-state')">编辑口径</button></div><div id="currentStateDisplay">尚未设置项目口径</div></div>
+<div class="card"><div class="card-header"><h3>📋 最近 5 个版本</h3></div><div id="recentVersionsTable"><div class="empty"><div class="empty-icon">📭</div><p>暂无版本记录</p></div></div></div>
+</div>
+<div class="page" id="page-versions">
+<div class="page-header"><div><h2>版本管理</h2><p class="subtitle">版本增删改查</p></div><button class="btn btn-primary" onclick="openModal('new-version')">+ 新建版本</button></div>
+<div class="table-wrap"><table><thead><tr><th>版本号</th><th>文件</th><th>类型</th><th>可运行</th><th>时间</th><th>摘要</th><th>操作</th></tr></thead><tbody id="versionsTableBody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">暂无记录</td></tr></tbody></table></div>
+</div>
+<div class="page" id="page-timeline"><div class="page-header"><h2>时间线</h2></div><div id="timelineContainer"><div class="empty"><div class="empty-icon">📅</div><p>暂无历史</p></div></div></div>
+<div class="page" id="page-state">
+<div class="page-header"><div><h2>项目口径</h2></div><button class="btn btn-secondary" onclick="openModal('edit-state')">编辑</button></div>
+<div class="card"><h3>基本信息</h3><div id="stateBasicInfo"></div></div>
+<div class="card"><h3>状态描述</h3><div id="stateDescription"></div></div>
+<div class="card"><h3>下次建议</h3><div id="stateNextSteps"></div></div>
+</div>
+<div class="page" id="page-decisions">
+<div class="page-header"><div><h2>决策记录</h2></div><button class="btn btn-primary" onclick="openModal('new-decision')">+ 记录决策</button></div>
+<div id="decisionsList"><div class="empty"><div class="empty-icon">⚖️</div><p>暂无决策记录</p></div></div>
+</div>
+<div class="page" id="page-config">
+<div class="page-header"><h2>配置</h2></div>
+<div class="card"><div class="form-group"><label>最大版本数</label><input type="number" id="cfgMaxVersions" value="5"></div><div class="form-group"><label>忽略模式</label><textarea id="cfgIgnorePatterns" rows="5">temp/*
+*.log
+*.tmp
+node_modules/
+.env</textarea></div><button class="btn btn-primary" onclick="saveConfig()">保存</button></div>
+</div>
+<div class="page" id="page-export">
+<div class="page-header"><h2>导出报告</h2></div>
+<div class="card"><pre class="markdown-preview" id="reportPreview">点击生成</pre></div>
+</div>
+</main>
+</div>
+<script>
+const SK={VERSIONS:'vc_v',STATE:'vc_s',DECISIONS:'vc_d',CONFIG:'vc_c'};
+function L(k,f){try{return JSON.parse(localStorage.getItem(k))||f}catch{return f}}
+function S(k,d){localStorage.setItem(k,JSON.stringify(d))}
+let V=L(SK.VERSIONS,[]),St=L(SK.STATE,{name:'',desc:'',next:'',created:null}),D=L(SK.DECISIONS,[]),C=L(SK.CONFIG,{maxV:5,ign:['temp/*','*.log','*.tmp','node_modules/','.env']});
+document.querySelectorAll('.nav-item').forEach(i=>i.onclick=()=>{document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));i.classList.add('active');document.getElementById('page-'+i.dataset.page).classList.add('active')});
+function OM(n){document.getElementById('modal-'+n).classList.add('show')}function CM(n){document.getElementById('modal-'+n).classList.remove('show')}
+function toast(m,t='success'){const c=document.getElementById('toastContainer');const e=document.createElement('div');e.className='toast '+t;e.textContent=m;c.appendChild(e);setTimeout(()=>e.remove(),2800)}
+function renderAll(){RD();RV();RT();RD2();RS();RC();UB()}
+function UB(){document.getElementById('version-count').textContent=V.length;document.getElementById('decision-count').textContent=D.length}
+function RD(){document.getElementById('stat-total').textContent=V.length;document.getElementById('stat-runnable').textContent=V.filter(v=>v.r==='r').length;document.getElementById('stat-decisions').textContent=D.length;document.getElementById('stat-days').textContent=St.created?Math.floor((Date.now()-new Date(St.created).getTime())/864e5):0;document.getElementById('currentStateDisplay').innerHTML=St.desc?'<strong>'+(St.name||'项目')+'</strong><br>'+St.desc:'未设置项目口径';const r=JSON.parse(JSON.stringify(V)).slice(-5).reverse();document.getElementById('recentVersionsTable').innerHTML=r.length?'<table><thead><tr><th>版本</th><th>类型</th><th>可运行</th><th>摘要</th></tr></thead><tbody>'+r.map(v=>'<tr><td><span class="tag tag-brand">'+v.v+'</span></td><td><span class="tag '+TT(v.t)+'">'+TN(v.t)+'</span></td><td><span class="status-dot '+v.r+'">'+RL(v.r)+'</span></td><td>'+ES(v.s)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty"><p>暂无版本记录</p></div>'}
+function RV(){const tb=document.getElementById('versionsTableBody');tb.innerHTML=V.length?JSON.parse(JSON.stringify(V)).reverse().map(v=>'<tr><td><span class="tag tag-brand">'+v.v+'</span></td><td>'+ES(v.f)+'</td><td><span class="tag '+TT(v.t)+'">'+TN(v.t)+'</span></td><td><span class="status-dot '+v.r+'">'+RL(v.r)+'</span></td><td>'+v.time+'</td><td>'+ES(v.s)+'</td><td><button class="btn-icon" onclick="DEL_V(\''+v.id+'\')" style="color:var(--red)">🗑</button></td></tr>').join(''):'<tr><td colspan="7" style="text-align:center;padding:40px">暂无记录</td></tr>'}
+function RT(){const c=document.getElementById('timelineContainer');if(!V.length){c.innerHTML='<div class="empty"><p>暂无历史</p></div>';return}c.innerHTML='<div style="position:relative;padding-left:28px"><div style="position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--rule)"></div>'+JSON.parse(JSON.stringify(V)).reverse().map(v=>'<div style="position:relative;margin-bottom:16px;padding-left:16px"><div style="position:absolute;left:-22px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:2px solid var(--bg)"></div><div class="card" style="padding:16px"><div style="display:flex;justify-content:space-between"><div><span class="tag tag-brand">'+v.v+'</span> <span class="tag '+TT(v.t)+'">'+TN(v.t)+'</span> <span class="status-dot '+v.r+'">'+RL(v.r)+'</span></div><span style="font-size:.78rem;color:var(--muted)">'+v.time+'</span></div><div style="font-size:.88rem;margin:4px 0">'+ES(v.s)+'</div><div style="font-size:.8rem;color:var(--muted)">📄 '+ES(v.f)+'</div></div></div>').join('')+'</div>'}
+function RD2(){const c=document.getElementById('decisionsList');if(!D.length){c.innerHTML='<div class="empty"><p>暂无决策记录</p></div>';return}c.innerHTML='<div class="card">'+JSON.parse(JSON.stringify(D)).reverse().map(d=>'<div class="decision-item"><div class="decision-marker"></div><div class="decision-content"><div class="decision-title">'+ES(d.title)+' <span class="tag '+DS_C(d.status)+'">'+DS_L(d.status)+'</span></div><div class="decision-meta">'+d.time+'</div>'+(d.reason?'<div class="decision-reason">'+ES(d.reason)+'</div>':'')+'</div><button class="btn-icon" onclick="DEL_D(\''+d.id+'\')" style="color:var(--red)">🗑</button></div>').join('')+'</div>'}
+function RS(){document.getElementById('stateBasicInfo').innerHTML='<div>'+(St.name||'—')+' · v'+V.length+'</div>';document.getElementById('stateDescription').innerHTML=St.desc||'未设置';document.getElementById('stateNextSteps').innerHTML=St.next||'未设置'}
+function RC(){document.getElementById('cfgMaxVersions').value=C.maxV;document.getElementById('cfgIgnorePatterns').value=C.ign.join('\n')}
+function saveV(){const v={id:'v_'+Date.now(),v:document.getElementById('verVersion').value,t:document.getElementById('verType').value,f:document.getElementById('verFiles').value,s:document.getElementById('verSummary').value,r:document.getElementById('verRunnable').value,time:new Date().toLocaleString('zh-CN')};V.push(v);S(SK.VERSIONS,V);CM('new-version');renderAll();toast('已保存')}
+function DEL_V(i){if(!confirm('删除？'))return;V=V.filter(x=>x.id!==i);S(SK.VERSIONS,V);renderAll();toast('已删除')}
+function saveSt(){St.name=document.getElementById('stateName').value;St.desc=document.getElementById('stateDescription').value;St.next=document.getElementById('stateNextSteps').value;if(!St.created)St.created=new Date().toISOString().split('T')[0];S(SK.STATE,St);CM('edit-state');renderAll();toast('已保存')}
+function saveD(){const d={id:'d_'+Date.now(),title:document.getElementById('decTitle').value,reason:document.getElementById('decReason').value,status:document.getElementById('decStatus').value,time:new Date().toLocaleString('zh-CN')};D.push(d);S(SK.DECISIONS,D);CM('new-decision');renderAll();toast('已记录')}
+function DEL_D(i){if(!confirm('删除？'))return;D=D.filter(x=>x.id!==i);S(SK.DECISIONS,D);renderAll();toast('已删除')}
+function saveC(){C.maxV=parseInt(document.getElementById('cfgMaxVersions').value)||5;C.ign=document.getElementById('cfgIgnorePatterns').value.split('\n').filter(x=>x.trim());S(SK.CONFIG,C);toast('已保存')}
+function TT(t){return{t:'tag-gray',f:'tag-brand',r:'tag-blue',b:'tag-amber',c:'tag-gray',m:'tag-gray'}[t]||'tag-gray'}
+function TN(t){return{t:'初始化',f:'功能新增',r:'重构',b:'Bug修复',c:'配置变更',m:'小修'}[t]||t}
+function RL(r){return{r:'✅可运行',u:'⚠️未验证',x:'❌不可运行'}[r]||r}
+function DS_C(s){return{confirmed:'tag-green',pending:'tag-amber',deprecated:'tag-red'}[s]||'tag-gray'}
+function DS_L(s){return{confirmed:'已确认',pending:'待实施',deprecated:'已废弃'}[s]||s}
+function ES(s){return(s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
+renderAll();
+</script>
+</body>
+</html>
